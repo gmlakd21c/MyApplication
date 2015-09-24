@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -17,6 +18,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        super.setTitle("간단한 계산기");
 
         editText1 = (EditText)findViewById(R.id.editText1);
         editText2 = (EditText)findViewById(R.id.editText2);
@@ -56,7 +59,11 @@ public class MainActivity extends AppCompatActivity {
                 double num1 = Integer.parseInt(editText1.getText().toString());
                 double num2 = Integer.parseInt(editText1.getText().toString());
 
-                resultText.setText("계산된 결과는 " + num1*num2 + " 입니다.");
+
+                if(num2==0)
+                    Toast.makeText(getApplicationContext(),"0으로 나누시면 안되요", Toast.LENGTH_SHORT).show();
+                else
+                    resultText.setText("계산된 결과는 " + num1*num2 + " 입니다.");
             }
 
         });
