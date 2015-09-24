@@ -30,8 +30,8 @@ public class MainActivity extends AppCompatActivity {
         btnAdd.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v)
             {
-                double num1 = Integer.parseInt(editText1.getText().toString());
-                double num2 = Integer.parseInt(editText1.getText().toString());
+                double num1 = Double.parseDouble(editText1.getText().toString());
+                double num2 = Double.parseDouble(editText2.getText().toString());
                 double result = num1 + num2;
                 resultText.setText("계산된 결과는 " + result + " 입니다.");
             }
@@ -44,50 +44,56 @@ public class MainActivity extends AppCompatActivity {
         btnSub.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v)
             {
-                double num1 = Integer.parseInt(editText1.getText().toString());
-                double num2 = Integer.parseInt(editText1.getText().toString());
+                double num1 = Double.parseDouble(editText1.getText().toString());
+                double num2 = Double.parseDouble(editText2.getText().toString());
                 double result = num1 - num2;
                 resultText.setText("계산된 결과는 " + result + " 입니다.");
             }
 
         });
+
         Button btnMul = (Button)findViewById(R.id.btnMul);
 
         btnMul.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v)
             {
-                double num1 = Integer.parseInt(editText1.getText().toString());
-                double num2 = Integer.parseInt(editText1.getText().toString());
+                double num1 = Double.parseDouble(editText1.getText().toString());
+                double num2 = Double.parseDouble(editText2.getText().toString());
+                double result = num1 * num2;
 
 
-                if(num2==0)
-                    Toast.makeText(getApplicationContext(),"0으로 나누시면 안되요", Toast.LENGTH_SHORT).show();
-                else
-                    resultText.setText("계산된 결과는 " + num1*num2 + " 입니다.");
+                    resultText.setText("계산된 결과는 " + result + " 입니다.");
             }
 
         });
+
         Button btnDiv = (Button)findViewById(R.id.btnDiv);
 
         btnDiv.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v)
             {
-                double num1 = Integer.parseInt(editText1.getText().toString());
-                double num2 = Integer.parseInt(editText1.getText().toString());
+                double num1 = Double.parseDouble(editText1.getText().toString());
+                double num2 = Double.parseDouble(editText2.getText().toString());
+                double result = num1 / num2;
 
-                resultText.setText("계산된 결과는 " + num1/num2 + " 입니다.");
+                if(num2==0)
+                    Toast.makeText(getApplicationContext(),"0으로 나누시면 안되요", Toast.LENGTH_SHORT).show();
+                else
+                    resultText.setText("계산된 결과는 " + result + " 입니다.");
             }
 
         });
+
         Button btnShowRemainder = (Button)findViewById(R.id.btnShowRemainder);
 
         btnShowRemainder.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v)
             {
-                double num1 = Integer.parseInt(editText1.getText().toString());
-                double num2 = Integer.parseInt(editText1.getText().toString());
+                double num1 = Double.parseDouble(editText1.getText().toString());
+                double num2 = Double.parseDouble(editText2.getText().toString());
 
                 resultText.setText("계산된 결과의 나머지는 " + num1%num2 + " 입니다.");
+
             }
 
         });
