@@ -1,6 +1,7 @@
 package com.example.com.myapplication;
 
 import android.app.AlertDialog;
+import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.support.v7.app.AppCompatActivity;
@@ -27,6 +28,10 @@ public class MainActivity extends AppCompatActivity {
     TextView dateText;
     String fileName;
     View dialogView;
+    DatePicker datePicker;
+    int year;
+    int month;
+    int day;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,7 +42,17 @@ public class MainActivity extends AppCompatActivity {
         diaryText = (EditText)findViewById(R.id.diaryText);
         dateText = (TextView)findViewById(R.id.dateText);
         dialogView = (View)View.inflate(MainActivity.this, R.layout.datepicker, null);
+        datePicker = (DatePicker)findViewById(R.id.datePicker);
 
+
+        final DatePickerDialog.OnDateSetListener dateSetListener = new DatePickerDialog.OnDateSetListener()
+        {
+            public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth)
+            {
+                String msg = String.format("%d / %d / %d", year,monthOfYear+1, dayOfMonth);
+                Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show();
+            }
+        };
 
         saveBtn.setOnClickListener(new OnClickListener()
         {
@@ -61,11 +76,23 @@ public class MainActivity extends AppCompatActivity {
         {
             public void onClick(View v)
             {
+                new DatePickerDialog(MainActivity.this, dateSetListener, year, month, day).show();
+
+                dateText.setText(year + "년 " + month + "월 " + day + "일");
+                /*
                 AlertDialog.Builder dig = new AlertDialog.Builder(MainActivity.this);
+                dig.setPositiveButton("선택", new DialogInterface.OnClickListener()
+                {
+                    public void onClick(DialogInterface dialog, int which)
+                    {
+                        Toast.makeText(getApplication(),datePicker.getYear() +"년 " + datePicker.getMonth() + "월 " + datePicker.getDayOfMonth() + "일",Toast.LENGTH_SHORT).show();
+                    }
+                });
 
                 dig.setTitle("날짜 정해주세요");
                 dig.setView(dialogView);
                 dig.show();
+                */
             }
         });
     }
