@@ -1,0 +1,22 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="300dp"
+    android:layout_height="400dp" tools:context=".MainActivity"
+    android:gravity="center"
+    android:id="@+id/posterLayout"
+    android:orientation="vertical">
+
+    <ImageView
+        android:id="@+id/posterPicture"
+        android:layout_height="50dp"
+        android:layout_width="250dp"
+        >
+
+    </ImageView>
+
+    <TextView
+        android:id="@+id/posterName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:hint="야호" />
+</LinearLayout>
