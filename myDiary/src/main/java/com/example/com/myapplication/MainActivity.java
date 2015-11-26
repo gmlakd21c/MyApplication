@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -16,6 +17,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -29,14 +31,37 @@ public class MainActivity extends AppCompatActivity {
     String fileName;
     View dialogView;
     DatePicker datePicker;
-    int year;
-    int month;
-    int day;
-
+    int thisYear;
+    int thisMonth;
+    int thisDay;
+    String strSDpath;
+    String filePath;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
+        strSDpath = Environment.getExternalStorageDirectory().getAbsolutePath();
+        filePath = strSDpath + "/mydir";
+        File myDir;
+        String sysDir = Environment.getRootDirectory().getAbsolutePath();
+        File[] sysFiles =  (new File(sysDir)).listFiles();
+
+        String tmpFileName = filePath;
+        for(int i=0; i<sysFiles.length; i++)
+        {
+            if(sysFiles[i].isDirectory() == true)
+            {
+                if(tmpFileName.equals(sysFiles.toString()))
+                    break;
+            }
+            else if(i == sysFiles.length-1)
+            {
+                myDir = new File(filePath);
+                myDir.mkdir();
+            }
+        }
 
         saveBtn = (Button)findViewById(R.id.saveBtn);
         diaryText = (EditText)findViewById(R.id.diaryText);
@@ -44,30 +69,50 @@ public class MainActivity extends AppCompatActivity {
         dialogView = (View)View.inflate(MainActivity.this, R.layout.datepicker, null);
         datePicker = (DatePicker)findViewById(R.id.datePicker);
 
+        Calendar cal = Calendar.getInstance();
+        thisYear = cal.get(Calendar.YEAR);
+        thisMonth = cal.get(Calendar.MONTH);
+        thisDay = cal.get(Calendar.DAY_OF_MONTH);
 
         final DatePickerDialog.OnDateSetListener dateSetListener = new DatePickerDialog.OnDateSetListener()
         {
             public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth)
             {
-                String msg = String.format("%d / %d / %d", year,monthOfYear+1, dayOfMonth);
-                Toast.makeText(MainActivity.this, msg, Toast.LENGTH_SHORT).show();
+                String msg = String.format("%d / %d / %d", year, monthOfYear + 1, dayOfMonth);
+
+                thisYear = year;
+                thisMonth = monthOfYear;
+                thisDay = dayOfMonth;
+                dateText.setText(msg);
+
+                fileName = Integer.toString(thisYear) + "_" + Integer.toString(thisMonth+1) + "_" + Integer.toString(thisDay) + ".txt";
+                String str = "";
+                str = readDiary(fileName);
+                diaryText.setText(str);
+                String tmp = filePath + "/" + fileName;
+                Toast.makeText(getApplication(), tmp.substring(1,tmp.length()), Toast.LENGTH_SHORT).show();
+
             }
         };
+
+        final DatePickerDialog dateDig = new DatePickerDialog(MainActivity.this, dateSetListener, thisYear, thisMonth, thisDay);
 
         saveBtn.setOnClickListener(new OnClickListener()
         {
             public void onClick(View v)
             {
                 try {
+                    String tmp = filePath +"/"+ fileName;
+                    String tmp2 = tmp.substring(1,tmp.length());
+
                     FileOutputStream outPutStream = openFileOutput(fileName, Context.MODE_WORLD_WRITEABLE);
-                    String str = diaryText.getText().toString();
+                    String str = diaryText.getText().toString().trim();
+
                     outPutStream.write(str.getBytes());
                     outPutStream.close();
                     Toast.makeText(getApplication(), fileName + "이 저장되었습니다.", Toast.LENGTH_SHORT).show();
                 }
-                catch(IOException e)
-                {
-
+                catch(IOException e) {
                 }
             }
         });
@@ -76,26 +121,46 @@ public class MainActivity extends AppCompatActivity {
         {
             public void onClick(View v)
             {
-                new DatePickerDialog(MainActivity.this, dateSetListener, year, month, day).show();
-
-                dateText.setText(year + "년 " + month + "월 " + day + "일");
-                /*
-                AlertDialog.Builder dig = new AlertDialog.Builder(MainActivity.this);
-                dig.setPositiveButton("선택", new DialogInterface.OnClickListener()
-                {
-                    public void onClick(DialogInterface dialog, int which)
-                    {
-                        Toast.makeText(getApplication(),datePicker.getYear() +"년 " + datePicker.getMonth() + "월 " + datePicker.getDayOfMonth() + "일",Toast.LENGTH_SHORT).show();
-                    }
-                });
-
-                dig.setTitle("날짜 정해주세요");
-                dig.setView(dialogView);
-                dig.show();
-                */
+                dateDig.show();
             }
         });
     }
+
+    String readDiary(String fileName)
+    {
+        String diaryStr = null;
+        FileInputStream inputStream;
+        try
+        {
+            String tmp = filePath +"/"+ fileName;
+            String tmp2 = tmp.substring(1,tmp.length());
+            inputStream = openFileInput(fileName);
+            byte[] txt = new byte[inputStream.available()];
+            inputStream.read(txt);
+            diaryStr = (new String(txt)).trim();
+            inputStream.close();
+        }
+        catch(IOException e)
+        {
+            diaryText.setHint("일기 없음");
+        }
+        return diaryStr;
+    }
+
+    /*
+    AlertDialog.Builder dig = new AlertDialog.Builder(MainActivity.this);
+    dig.setPositiveButton("선택", new DialogInterface.OnClickListener()
+    {
+        public void onClick(DialogInterface dialog, int which)
+        {
+            Toast.makeText(getApplication(),datePicker.getYear() +"년 " + datePicker.getMonth() + "월 " + datePicker.getDayOfMonth() + "일",Toast.LENGTH_SHORT).show();
+        }
+    });
+
+    dig.setTitle("날짜 정해주세요");
+    dig.setView(dialogView);
+    dig.show();
+
 
     public AlertDialog createDialogBox() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -122,26 +187,7 @@ public class MainActivity extends AppCompatActivity {
         AlertDialog dialog = builder.create();
         return dialog;
     }
-
-    String readDiary(String fileName)
-    {
-        String diaryStr = null;
-        FileInputStream inputStream;
-        try
-        {
-            inputStream = openFileInput(fileName);
-            byte[] txt = new byte[500];
-            inputStream.read(txt);
-            inputStream.close();
-            diaryStr = (new String(txt)).trim();
-        }
-        catch(IOException e)
-        {
-            diaryText.setHint("일기 없음");
-        }
-        return diaryStr;
-    }
-
+*/
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
