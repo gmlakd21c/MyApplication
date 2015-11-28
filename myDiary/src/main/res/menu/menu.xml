@@ -9,7 +9,7 @@
         android:id="@+id/deleteDairy"
         android:title="일기 삭제"></item>
 
-    <item android:title="글씨 크기">
+    <item android:title="글씨 크기"> // 글씨 크기는 하위메뉴를 갖는다.
         <menu>
             <item
                 android:id="@+id/largeSize"
