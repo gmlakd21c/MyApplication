@@ -7,8 +7,13 @@ import android.content.DialogInterface;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Spannable;
+import android.text.style.AbsoluteSizeSpan;
+import android.text.style.RelativeSizeSpan;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.SubMenu;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -29,19 +34,74 @@ public class MainActivity extends AppCompatActivity {
     EditText diaryText;
     TextView dateText;
     String fileName;
-    View dialogView;
     DatePicker datePicker;
     int thisYear;
     int thisMonth;
     int thisDay;
     String strSDpath;
     String filePath;
+    Spannable fontSize;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
 
+        strSDpath = Environment.getExternalStorageDirectory().getAbsolutePath();
+        filePath = strSDpath + "/mydir";
+
+        diaryText = (EditText)findViewById(R.id.diaryText);
+        dateText = (TextView)findViewById(R.id.dateText);
+        datePicker = (DatePicker)findViewById(R.id.datePicker);
+
+        Calendar cal = Calendar.getInstance();
+        thisYear = cal.get(Calendar.YEAR);
+        thisMonth = cal.get(Calendar.MONTH);
+        thisDay = cal.get(Calendar.DAY_OF_MONTH);
+
+        saveBtn = (Button)findViewById(R.id.saveBtn);
+        File myDir;
+
+        fileCheck();
+
+        final DatePickerDialog.OnDateSetListener dateSetListener = new DatePickerDialog.OnDateSetListener()
+        {
+            public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth)
+            {
+                String msg = String.format("%d_%d_%d", year, monthOfYear + 1, dayOfMonth);
+
+                thisYear = year;
+                thisMonth = monthOfYear;
+                thisDay = dayOfMonth;
+                dateText.setText(msg);
+
+                fileName = Integer.toString(thisYear) + "_" + Integer.toString(thisMonth+1) + "_" + Integer.toString(thisDay) + ".txt";
+                String str = readDiary(fileName);
+                diaryText.setText(str);
+            }
+        };
+
+        final DatePickerDialog dateDig = new DatePickerDialog(MainActivity.this, dateSetListener, thisYear, thisMonth, thisDay);
+
+        saveBtn.setOnClickListener(new OnClickListener()
+        {
+            public void onClick(View v)
+            {
+                saveDiary(fileName);
+            }
+        });
+
+        dateText.setOnClickListener(new OnClickListener()
+        {
+            public void onClick(View v)
+            {
+                dateDig.show();
+            }
+        });
+    }
+
+    void fileCheck()
+    {
         strSDpath = Environment.getExternalStorageDirectory().getAbsolutePath();
         filePath = strSDpath + "/mydir";
         File myDir;
@@ -62,68 +122,23 @@ public class MainActivity extends AppCompatActivity {
                 myDir.mkdir();
             }
         }
+    }
 
-        saveBtn = (Button)findViewById(R.id.saveBtn);
-        diaryText = (EditText)findViewById(R.id.diaryText);
-        dateText = (TextView)findViewById(R.id.dateText);
-        dialogView = (View)View.inflate(MainActivity.this, R.layout.datepicker, null);
-        datePicker = (DatePicker)findViewById(R.id.datePicker);
+    void saveDiary(String fileName)
+    {
+        try {
+            File file;
+            String readFile = filePath +"/"+ fileName;
+            file = new File(readFile);
+            FileOutputStream outPutStream = new FileOutputStream(file);
+            String str = diaryText.getText().toString().trim();
 
-        Calendar cal = Calendar.getInstance();
-        thisYear = cal.get(Calendar.YEAR);
-        thisMonth = cal.get(Calendar.MONTH);
-        thisDay = cal.get(Calendar.DAY_OF_MONTH);
-
-        final DatePickerDialog.OnDateSetListener dateSetListener = new DatePickerDialog.OnDateSetListener()
-        {
-            public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth)
-            {
-                String msg = String.format("%d / %d / %d", year, monthOfYear + 1, dayOfMonth);
-
-                thisYear = year;
-                thisMonth = monthOfYear;
-                thisDay = dayOfMonth;
-                dateText.setText(msg);
-
-                fileName = Integer.toString(thisYear) + "_" + Integer.toString(thisMonth+1) + "_" + Integer.toString(thisDay) + ".txt";
-                String str = "";
-                str = readDiary(fileName);
-                diaryText.setText(str);
-                String tmp = filePath + "/" + fileName;
-                Toast.makeText(getApplication(), tmp.substring(1,tmp.length()), Toast.LENGTH_SHORT).show();
-
-            }
-        };
-
-        final DatePickerDialog dateDig = new DatePickerDialog(MainActivity.this, dateSetListener, thisYear, thisMonth, thisDay);
-
-        saveBtn.setOnClickListener(new OnClickListener()
-        {
-            public void onClick(View v)
-            {
-                try {
-                    String tmp = filePath +"/"+ fileName;
-                    String tmp2 = tmp.substring(1,tmp.length());
-
-                    FileOutputStream outPutStream = openFileOutput(fileName, Context.MODE_WORLD_WRITEABLE);
-                    String str = diaryText.getText().toString().trim();
-
-                    outPutStream.write(str.getBytes());
-                    outPutStream.close();
-                    Toast.makeText(getApplication(), fileName + "이 저장되었습니다.", Toast.LENGTH_SHORT).show();
-                }
-                catch(IOException e) {
-                }
-            }
-        });
-
-        dateText.setOnClickListener(new OnClickListener()
-        {
-            public void onClick(View v)
-            {
-                dateDig.show();
-            }
-        });
+            outPutStream.write(str.getBytes());
+            outPutStream.close();
+            Toast.makeText(getApplication(), fileName + "이 저장되었습니다.", Toast.LENGTH_SHORT).show();
+        }
+        catch(IOException e) {
+        }
     }
 
     String readDiary(String fileName)
@@ -133,80 +148,84 @@ public class MainActivity extends AppCompatActivity {
         try
         {
             String tmp = filePath +"/"+ fileName;
-            String tmp2 = tmp.substring(1,tmp.length());
-            inputStream = openFileInput(fileName);
+            inputStream = new FileInputStream(tmp);
             byte[] txt = new byte[inputStream.available()];
             inputStream.read(txt);
             diaryStr = (new String(txt)).trim();
             inputStream.close();
+            Toast.makeText(getApplication(), fileName + "을 불러왔습니다.", Toast.LENGTH_SHORT).show();
         }
         catch(IOException e)
         {
-            diaryText.setHint("일기 없음");
+            diaryText.setHint("일기 내용");
         }
         return diaryStr;
     }
 
-    /*
-    AlertDialog.Builder dig = new AlertDialog.Builder(MainActivity.this);
-    dig.setPositiveButton("선택", new DialogInterface.OnClickListener()
-    {
-        public void onClick(DialogInterface dialog, int which)
-        {
-            Toast.makeText(getApplication(),datePicker.getYear() +"년 " + datePicker.getMonth() + "월 " + datePicker.getDayOfMonth() + "일",Toast.LENGTH_SHORT).show();
-        }
-    });
-
-    dig.setTitle("날짜 정해주세요");
-    dig.setView(dialogView);
-    dig.show();
-
-
-    public AlertDialog createDialogBox() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-
-        builder.setTitle("날짜를 정해주세요");
-
-        Calendar calendar = Calendar.getInstance();
-        int year = calendar.get(Calendar.YEAR);
-        int month = calendar.get(Calendar.MONTH);
-        int day = calendar.get(Calendar.DAY_OF_MONTH);
-
-        DatePicker datePicker;
-
-        datePicker = new DatePicker(this);
-        datePicker.init(year, month, day, new DatePicker.OnDateChangedListener()
-        {
-            public void onDateChanged(DatePicker view, int year, int month, int day)
-            {
-                fileName = Integer.toString(year) + "_" + Integer.toString(month+1) + "_" + Integer.toString(day) + ".txt";
-                String str = readDiary(fileName);
-                diaryText.setText(str);
-            }
-        });
-        AlertDialog dialog = builder.create();
-        return dialog;
-    }
-*/
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+        super.onCreateOptionsMenu(menu);
+        MenuInflater mInflater = getMenuInflater();
+        mInflater.inflate(R.menu.menu, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        fontSize = diaryText.getText();
+
+        switch ((item.getItemId())) {
+
+            case R.id.deleteDairy:
+                AlertDialog.Builder dig = new AlertDialog.Builder(MainActivity.this);
+                dig.setPositiveButton("삭제", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        String tmpFileName = dateText.getText().toString() + ".txt";
+                        File file = new File(filePath + "/" + tmpFileName);
+                        file.delete();
+                        Toast.makeText(getApplication(), tmpFileName + "을 삭제하였습니다.", Toast.LENGTH_SHORT).show();
+                        diaryText.setText("");
+                    }
+                });
+
+                dig.setNegativeButton("취소", null);
+                dig.setTitle(fileName + " 삭제 하시겠습니까?");
+                dig.show();
+                break;
+
+            case R.id.reread:
+                AlertDialog.Builder rereadDig = new AlertDialog.Builder(MainActivity.this);
+                rereadDig.setPositiveButton("확인", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        String tmpFileName = dateText.getText().toString() + ".txt";
+                        diaryText.setText(readDiary(fileName));
+                        Toast.makeText(getApplication(), tmpFileName + "을 불러왔습니다.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+                rereadDig.setNegativeButton("취소", null);
+                rereadDig.setTitle("현재 작성중인 일기가 사라집니다. 다시불러오시겠습니까?");
+                rereadDig.show();
+                break;
+
+            case R.id.largeSize:
+                fontSize.setSpan(new AbsoluteSizeSpan(120), 0, diaryText.getText().toString().length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+                break;
+
+            case R.id.nomalSize:
+                fontSize.setSpan(new AbsoluteSizeSpan(60), 0, diaryText.getText().toString().length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+                break;
+
+            case R.id.smallSize:
+                fontSize.setSpan(new AbsoluteSizeSpan(30), 0, diaryText.getText().toString().length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+                break;
+
         }
-
-        return super.onOptionsItemSelected(item);
+        return true;
     }
 }
